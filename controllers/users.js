@@ -1,10 +1,13 @@
 const bcrypt = require('bcrypt')
 const usersRouter = require('express').Router()
 const User = require('../models/user')
+const middleware = require('../utils/middleware')
 
-usersRouter.get('/', async (request, response) => {
-  const customers = await User.find({})
-  response.json(customers)
+usersRouter.get('/', middleware.userExtractor, async (request, response) => {
+
+  const users = await User.find({})
+  console.log(`Requested by ${request.user.email}`)
+  response.json(users)
 })
 
 usersRouter.post('/', async (request, response) => {
