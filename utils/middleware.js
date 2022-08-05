@@ -2,6 +2,7 @@ const logger = require('./logger')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
 const config = require('./config')
+const crypto = require('crypto')
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method)
@@ -47,10 +48,10 @@ const userExtractor = async (request, response, next) => {
     if (!user) {
       return response.status(404).json({ error: 'This account does not exist' })
     }
-    if (!registeredToken) {
+    if (!registeredToken || !crypto.timingSafeEqual(Buffer.from(registeredToken), Buffer.from(token))) {
       return response.status(401).json({ error: 'This session has expired' })
     }
-
+    /* Doing that last part to avoid timing attacks */
     request.user = user
 
   }
