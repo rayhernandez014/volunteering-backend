@@ -6,7 +6,6 @@ const middleware = require('../utils/middleware')
 usersRouter.get('/', middleware.userExtractor, async (request, response) => {
 
   const users = await User.find({})
-  console.log(`Requested by ${request.user.email}`)
   response.json(users)
 })
 
