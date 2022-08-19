@@ -23,7 +23,7 @@ loginRouter.post('/', async (request, response) => {
     id: user._id,
   }
 
-  const token = jwt.sign( userForToken, config.SECRET)
+  const token = jwt.sign(userForToken, config.SECRET)
 
   await config.redisClient.set(user._id.toString(), token)
 

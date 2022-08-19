@@ -16,7 +16,15 @@ const userSchema = new mongoose.Schema({
     minLength: 3,
     required: true
   },
-  passwordHash: String
+  passwordHash: String,
+  createdEvents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event'
+  }],
+  respondedEvents: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event'
+  }]
 })
 
 userSchema.set('toJSON', {
