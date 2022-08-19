@@ -113,4 +113,42 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
   response.json(updatedEvent)
 })
 
+eventsRouter.put('/:id/rsvp', middleware.userExtractor, async (request, response) => {
+
+  const event = await Event.findById(request.params.id)
+
+  if (!event) {
+    return response.status(404).json({ error: 'event does not exist' })
+  }
+
+  const user = request.user
+
+  let newVolunteersList = []
+
+  if (event.volunteers.find(v => v._id.toString() === user._id.toString())){
+    newVolunteersList = event.volunteers.filter(v => v._id.toString() !== user._id.toString())
+  }
+  else {
+    newVolunteersList = event.volunteers.concat(user._id)
+  }
+
+  const receivedEvent = {
+    volunteers : newVolunteersList
+  }
+
+  const updatedEvent= await Event.findByIdAndUpdate(request.params.id, receivedEvent, {
+    new: true,
+    runValidators: true,
+    context: 'query'
+  }).populate('author', {
+    email: 1,
+    name: 1
+  })
+    .populate('volunteers', {
+      email: 1,
+      name: 1
+    })
+  response.json(updatedEvent)
+})
+
 module.exports = eventsRouter

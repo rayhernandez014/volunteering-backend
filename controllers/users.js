@@ -96,8 +96,7 @@ usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
   }
 
   const receivedUser = {
-    name: body.name,
-    respondedEvents: body.respondedEvents
+    name: body.name
   }
 
   const updatedUser = await User.findByIdAndUpdate(request.params.id, receivedUser, {
