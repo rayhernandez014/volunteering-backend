@@ -16,30 +16,26 @@ const eventSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  location: {
-    type: [Number],
-    required: true,
-    validate: {
-      validator: (v) => {
-        return v.length === 2
-      },
-      message: 'location provided is invalid'
-    }
+  latitude: {
+    type: Number,
+    required: true
+  },
+  longitude: {
+    type: Number,
+    required: true
   },
   category: String,
   spots: {
     type: Number,
     required: true
   },
-  date: {
-    type: [Date],
-    required: true,
-    validate: {
-      validator: (v) => {
-        return v.length === 2
-      },
-      message: 'date provided is invalid'
-    }
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
   },
   volunteers: [{
     type: mongoose.Schema.Types.ObjectId,

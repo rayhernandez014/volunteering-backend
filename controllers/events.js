@@ -15,7 +15,7 @@ eventsRouter.get('/', async (request, response) => {
 })
 
 eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
-  const { title, description, location, category, spots, date } = request.body
+  const { title, description, latitude, longitude, category, spots, startDate, endDate } = request.body
 
   const author = request.user
 
@@ -23,11 +23,13 @@ eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
     title: title,
     description: description,
     author: author.id,
-    location: location,
+    latitude: latitude,
+    longitude: longitude,
     category: category ?? '',
     spots: spots,
     volunteers: [],
-    date: date
+    startDate: startDate,
+    endDate: endDate
   })
 
   const savedEvent = await event.save()
@@ -73,7 +75,7 @@ eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) 
 })
 
 eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
-  const { title, description, location, category, spots, date }  = request.body
+  const { title, description, latitude, longitude, category, spots, startDate, endDate }  = request.body
 
   const event = await Event.findById(request.params.id)
 
@@ -92,10 +94,12 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
   const receivedEvent = {
     title: title,
     description: description,
-    location: location,
+    latitude: latitude,
+    longitude: longitude,
     category: category,
     spots: spots,
-    date: date
+    startDate: startDate,
+    endDate: endDate
   }
 
   const updatedEvent= await Event.findByIdAndUpdate(request.params.id, receivedEvent, {
@@ -129,7 +133,12 @@ eventsRouter.put('/:id/rsvp', middleware.userExtractor, async (request, response
     newVolunteersList = event.volunteers.filter(v => v._id.toString() !== user._id.toString())
   }
   else {
-    newVolunteersList = event.volunteers.concat(user._id)
+    if ((event.volunteers.length < event.spots) || (event.spots === -1)) {
+      newVolunteersList = event.volunteers.concat(user._id)
+    }
+    else{
+      return response.status(401).json({ error: 'No spots available' })
+    }
   }
 
   const receivedEvent = {

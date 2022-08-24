@@ -57,7 +57,7 @@ const userExtractor = async (request, response, next) => {
 
   }
   else{
-    return response.status(404).json({ error: 'Token missing or invalid' })
+    return response.status(401).json({ error: 'Token missing or invalid' })
   }
 
   next()
