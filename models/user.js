@@ -24,7 +24,15 @@ const userSchema = new mongoose.Schema({
   respondedEvents: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'
-  }]
+  }],
+  latitude: {
+    type: Number,
+    required: true
+  },
+  longitude: {
+    type: Number,
+    required: true
+  }
 })
 
 userSchema.set('toJSON', {

@@ -15,7 +15,7 @@ usersRouter.get('/', middleware.userExtractor, async (request, response) => {
 })
 
 usersRouter.post('/', async (request, response) => {
-  const { email, name, password } = request.body
+  const { email, name, password, latitude, longitude } = request.body
 
   if (!password) {
     return response.status(400).json({
@@ -40,7 +40,9 @@ usersRouter.post('/', async (request, response) => {
     name: name,
     passwordHash: passwordHash,
     createdEvents: [],
-    respondedEvents: []
+    respondedEvents: [],
+    latitude: latitude,
+    longitude: longitude
   })
 
   const savedUser = await user.save()
@@ -96,7 +98,9 @@ usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
   }
 
   const receivedUser = {
-    name: body.name
+    name: body.name,
+    latitude: body.latitude,
+    longitude: body.longitude
   }
 
   const updatedUser = await User.findByIdAndUpdate(request.params.id, receivedUser, {
