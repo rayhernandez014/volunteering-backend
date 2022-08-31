@@ -26,12 +26,10 @@ const userSchema = new mongoose.Schema({
     ref: 'Event'
   }],
   latitude: {
-    type: Number,
-    required: true
+    type: Number
   },
   longitude: {
-    type: Number,
-    required: true
+    type: Number
   }
 })
 
