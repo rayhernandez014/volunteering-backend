@@ -14,7 +14,7 @@ const logger = require('./utils/logger')
 const app = express()
 app.use(helmet({
   contentSecurityPolicy: false,
-  crossOriginResourcePolicy: false
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
 }))
 
 mongoose.connect(config.MONGODB_URI)
