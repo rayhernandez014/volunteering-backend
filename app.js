@@ -12,10 +12,7 @@ const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
 const app = express()
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}))
+//app.use(helmet())
 
 mongoose.connect(config.MONGODB_URI)
 
