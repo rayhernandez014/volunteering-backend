@@ -24,6 +24,10 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  address: {
+    type: String,
+    required: true
+  },
   category: String,
   spots: {
     type: Number,
@@ -35,7 +39,13 @@ const eventSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
-    required: true
+    required: true,
+    validate: {
+      validator: function (v) {
+        return this.startDate < v
+      },
+      message: 'The end date has to be after the start date'
+    }
   },
   volunteers: [{
     type: mongoose.Schema.Types.ObjectId,

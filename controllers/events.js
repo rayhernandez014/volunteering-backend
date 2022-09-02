@@ -3,19 +3,56 @@ const Event = require('../models/event')
 const middleware = require('../utils/middleware')
 
 eventsRouter.get('/', async (request, response) => {
-  const events = await Event.find({}).populate('author', {
+
+  const currentDate = Date()
+
+  const events = await Event.find({ endDate: { $gte: currentDate } }).populate('author', {
     email: 1,
     name: 1
   })
     .populate('volunteers', {
       email: 1,
       name: 1
-    })
+    }).exec()
+  response.json(events)
+})
+
+eventsRouter.get('/going', middleware.userExtractor, async (request, response) => {
+
+  const currentDate = Date()
+
+  const user = request.user
+
+  const events = await Event.find({ volunteers: user._id, endDate: { $gte: currentDate } }).populate('author', {
+    email: 1,
+    name: 1
+  })
+    .populate('volunteers', {
+      email: 1,
+      name: 1
+    }).exec()
+  response.json(events)
+})
+
+eventsRouter.get('/history', middleware.userExtractor, async (request, response) => {
+
+  const currentDate = Date()
+
+  const user = request.user
+
+  const events = await Event.find({ volunteers: user._id, endDate: { $lt: currentDate } }).populate('author', {
+    email: 1,
+    name: 1
+  })
+    .populate('volunteers', {
+      email: 1,
+      name: 1
+    }).exec()
   response.json(events)
 })
 
 eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
-  const { title, description, latitude, longitude, category, spots, startDate, endDate } = request.body
+  const { title, description, latitude, longitude, address, category, spots, startDate, endDate } = request.body
 
   const author = request.user
 
@@ -25,6 +62,7 @@ eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
     author: author.id,
     latitude: latitude,
     longitude: longitude,
+    address: address,
     category: category ?? '',
     spots: spots,
     volunteers: [],
@@ -44,14 +82,14 @@ eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
     .populate('volunteers', {
       email: 1,
       name: 1
-    })
+    }).exec()
   response.status(201).json(eventToReturn)
 
 })
 
 eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
 
-  const event = await Event.findById(request.params.id)
+  const event = await Event.findById(request.params.id).exec()
 
   if (!event) {
     return response.status(404).json({ error: 'event does not exist' })
@@ -65,7 +103,7 @@ eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) 
       .json({ error: 'only the creator can delete this event' })
   }
 
-  await Event.findByIdAndRemove(request.params.id)
+  await Event.findByIdAndRemove(request.params.id).exec()
 
   author.createdEvents = author.createdEvents.filter(e => e._id.toString() !== request.params.id)
   await author.save()
@@ -75,9 +113,9 @@ eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) 
 })
 
 eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
-  const { title, description, latitude, longitude, category, spots, startDate, endDate }  = request.body
+  const { title, description, latitude, longitude, address, category, spots, startDate, endDate }  = request.body
 
-  const event = await Event.findById(request.params.id)
+  const event = await Event.findById(request.params.id).exec()
 
   if (!event) {
     return response.status(404).json({ error: 'event does not exist' })
@@ -96,6 +134,7 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
     description: description,
     latitude: latitude,
     longitude: longitude,
+    address: address,
     category: category,
     spots: spots,
     startDate: startDate,
@@ -113,13 +152,13 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
     .populate('volunteers', {
       email: 1,
       name: 1
-    })
+    }).exec()
   response.json(updatedEvent)
 })
 
 eventsRouter.put('/:id/rsvp', middleware.userExtractor, async (request, response) => {
 
-  const event = await Event.findById(request.params.id)
+  const event = await Event.findById(request.params.id).exec()
 
   if (!event) {
     return response.status(404).json({ error: 'event does not exist' })
@@ -156,7 +195,7 @@ eventsRouter.put('/:id/rsvp', middleware.userExtractor, async (request, response
     .populate('volunteers', {
       email: 1,
       name: 1
-    })
+    }).exec()
   response.json(updatedEvent)
 })
 

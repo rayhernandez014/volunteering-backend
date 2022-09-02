@@ -10,12 +10,12 @@ usersRouter.get('/', middleware.userExtractor, async (request, response) => {
   })
     .populate('respondedEvents', {
       title: 1
-    })
+    }).exec()
   response.json(users)
 })
 
 usersRouter.post('/', async (request, response) => {
-  const { email, name, password, latitude, longitude } = request.body
+  const { email, name, password, latitude, longitude, address } = request.body
 
   if (!password) {
     return response.status(400).json({
@@ -27,7 +27,7 @@ usersRouter.post('/', async (request, response) => {
     })
   }
 
-  const existingUser= await User.findOne({ email })
+  const existingUser= await User.findOne({ email }).exec()
   if (existingUser) {
     return response.status(400).json({ error: 'This email is already registered' })
   }
@@ -42,7 +42,8 @@ usersRouter.post('/', async (request, response) => {
     createdEvents: [],
     respondedEvents: [],
     latitude: latitude,
-    longitude: longitude
+    longitude: longitude,
+    address: address
   })
 
   const savedUser = await user.save()
@@ -52,14 +53,14 @@ usersRouter.post('/', async (request, response) => {
   })
     .populate('respondedEvents', {
       title: 1
-    })
+    }).exec()
 
   response.status(201).json(userToReturn)
 })
 
 usersRouter.delete( '/:id', middleware.userExtractor, async (request, response) => {
 
-  const user = await User.findById(request.params.id)
+  const user = await User.findById(request.params.id).exec()
 
   if (!user) {
     return response.status(404).json({ error: 'user does not exist' })
@@ -75,7 +76,7 @@ usersRouter.delete( '/:id', middleware.userExtractor, async (request, response) 
 
   await config.redisClient.del(request.params.id)
 
-  await User.findByIdAndRemove(request.params.id)
+  await User.findByIdAndRemove(request.params.id).exec()
   response.status(204).end()
 
 })
@@ -83,7 +84,7 @@ usersRouter.delete( '/:id', middleware.userExtractor, async (request, response) 
 usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
   const body = request.body
 
-  const user = await User.findById(request.params.id)
+  const user = await User.findById(request.params.id).exec()
 
   if (!user) {
     return response.status(404).json({ error: 'user does not exist' })
@@ -100,14 +101,15 @@ usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
   const receivedUser = {
     name: body.name,
     latitude: body.latitude,
-    longitude: body.longitude
+    longitude: body.longitude,
+    address: body.address
   }
 
   const updatedUser = await User.findByIdAndUpdate(request.params.id, receivedUser, {
     new: true,
     runValidators: true,
     context: 'query'
-  })
+  }).exec()
   response.json(updatedUser)
 })
 
