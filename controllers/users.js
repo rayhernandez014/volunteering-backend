@@ -3,6 +3,7 @@ const usersRouter = require('express').Router()
 const User = require('../models/user')
 const middleware = require('../utils/middleware')
 const config = require('../utils/config')
+const { cloudinary } = require('../utils/config')
 
 usersRouter.get('/', middleware.userExtractor, async (request, response) => {
   const users = await User.find({}).populate('createdEvents', {
@@ -15,7 +16,7 @@ usersRouter.get('/', middleware.userExtractor, async (request, response) => {
 })
 
 usersRouter.post('/', async (request, response) => {
-  const { email, name, password, latitude, longitude, address } = request.body
+  const { email, name, password, latitude, longitude, address, photo } = request.body
 
   if (!password) {
     return response.status(400).json({
@@ -35,6 +36,14 @@ usersRouter.post('/', async (request, response) => {
   const saltRounds = 10
   const passwordHash = await bcrypt.hash(password, saltRounds)
 
+  let cloudinaryResponse = null
+
+  if (photo) {
+    cloudinaryResponse = await cloudinary.uploader.upload(photo, {
+      upload_preset: 'users'
+    })
+  }
+
   const user = new User({
     email: email,
     name: name,
@@ -43,7 +52,8 @@ usersRouter.post('/', async (request, response) => {
     respondedEvents: [],
     latitude: latitude,
     longitude: longitude,
-    address: address
+    address: address,
+    photo: cloudinaryResponse?.public_id ?? ''
   })
 
   const savedUser = await user.save()
@@ -76,13 +86,17 @@ usersRouter.delete( '/:id', middleware.userExtractor, async (request, response) 
 
   await config.redisClient.del(request.params.id)
 
+  if (user.photo) {
+    await cloudinary.uploader.destroy(user.photo)
+  }
+
   await User.findByIdAndRemove(request.params.id).exec()
   response.status(204).end()
 
 })
 
 usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
-  const body = request.body
+  const { name, latitude, longitude, address, photo } = request.body
 
   const user = await User.findById(request.params.id).exec()
 
@@ -98,11 +112,24 @@ usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
       .json({ error: 'only the user can modify itself' })
   }
 
+  if (user.photo) {
+    await cloudinary.uploader.destroy(user.photo)
+  }
+
+  let cloudinaryResponse = null
+
+  if (photo) {
+    cloudinaryResponse = await cloudinary.uploader.upload(photo, {
+      upload_preset: 'users'
+    })
+  }
+
   const receivedUser = {
-    name: body.name,
-    latitude: body.latitude,
-    longitude: body.longitude,
-    address: body.address
+    name: name,
+    latitude: latitude,
+    longitude: longitude,
+    address: address,
+    photo: cloudinaryResponse?.public_id ?? ''
   }
 
   const updatedUser = await User.findByIdAndUpdate(request.params.id, receivedUser, {

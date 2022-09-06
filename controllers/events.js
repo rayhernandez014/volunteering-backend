@@ -1,6 +1,7 @@
 const eventsRouter = require('express').Router()
 const Event = require('../models/event')
 const middleware = require('../utils/middleware')
+const { cloudinary } = require('../utils/config')
 
 eventsRouter.get('/', async (request, response) => {
 
@@ -52,9 +53,17 @@ eventsRouter.get('/history', middleware.userExtractor, async (request, response)
 })
 
 eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
-  const { title, description, latitude, longitude, address, category, spots, startDate, endDate } = request.body
+  const { title, description, latitude, longitude, address, category, spots, startDate, endDate, image } = request.body
 
   const author = request.user
+
+  let cloudinaryResponse = null
+
+  if (image) {
+    cloudinaryResponse = await cloudinary.uploader.upload(image, {
+      upload_preset: 'events'
+    })
+  }
 
   const event = new Event({
     title: title,
@@ -67,7 +76,8 @@ eventsRouter.post('/', middleware.userExtractor, async (request, response) => {
     spots: spots,
     volunteers: [],
     startDate: startDate,
-    endDate: endDate
+    endDate: endDate,
+    image: cloudinaryResponse?.public_id ?? ''
   })
 
   const savedEvent = await event.save()
@@ -103,6 +113,10 @@ eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) 
       .json({ error: 'only the creator can delete this event' })
   }
 
+  if (event.image) {
+    await cloudinary.uploader.destroy(event.image)
+  }
+
   await Event.findByIdAndRemove(request.params.id).exec()
 
   author.createdEvents = author.createdEvents.filter(e => e._id.toString() !== request.params.id)
@@ -113,7 +127,7 @@ eventsRouter.delete('/:id', middleware.userExtractor, async (request, response) 
 })
 
 eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => {
-  const { title, description, latitude, longitude, address, category, spots, startDate, endDate }  = request.body
+  const { title, description, latitude, longitude, address, category, spots, startDate, endDate, image }  = request.body
 
   const event = await Event.findById(request.params.id).exec()
 
@@ -129,6 +143,18 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
       .json({ error: 'only the creator can update this event' })
   }
 
+  if (event.image) {
+    await cloudinary.uploader.destroy(event.image)
+  }
+
+  let cloudinaryResponse = null
+
+  if (image) {
+    cloudinaryResponse = await cloudinary.uploader.upload(image, {
+      upload_preset: 'events'
+    })
+  }
+
   const receivedEvent = {
     title: title,
     description: description,
@@ -138,7 +164,8 @@ eventsRouter.put('/:id', middleware.userExtractor, async (request, response) => 
     category: category,
     spots: spots,
     startDate: startDate,
-    endDate: endDate
+    endDate: endDate,
+    image: cloudinaryResponse?.public_id ?? ''
   }
 
   const updatedEvent= await Event.findByIdAndUpdate(request.params.id, receivedEvent, {

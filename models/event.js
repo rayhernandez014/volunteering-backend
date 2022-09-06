@@ -50,7 +50,10 @@ const eventSchema = new mongoose.Schema({
   volunteers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }]
+  }],
+  image: {
+    type: String
+  }
 })
 
 eventSchema.set('toJSON', {

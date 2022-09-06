@@ -1,5 +1,6 @@
 require('dotenv').config()
 const redis = require('redis')
+const cloudinary = require('cloudinary').v2
 
 const PORT = process.env.PORT
 
@@ -22,10 +23,16 @@ const initializeRedis = () => {
 
 const redisClient = initializeRedis()
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET
+})
 
 module.exports = {
   MONGODB_URI,
   redisClient,
   PORT,
-  SECRET
+  SECRET,
+  cloudinary
 }
