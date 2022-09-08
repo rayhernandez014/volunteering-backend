@@ -16,7 +16,7 @@ usersRouter.get('/', middleware.userExtractor, async (request, response) => {
 })
 
 usersRouter.post('/', async (request, response) => {
-  const { email, name, password, latitude, longitude, address, photo } = request.body
+  const { email, name, password, latitude, longitude, photo } = request.body
 
   if (!password) {
     return response.status(400).json({
@@ -52,7 +52,6 @@ usersRouter.post('/', async (request, response) => {
     respondedEvents: [],
     latitude: latitude,
     longitude: longitude,
-    address: address,
     photo: cloudinaryResponse?.public_id ?? ''
   })
 
@@ -96,7 +95,7 @@ usersRouter.delete( '/:id', middleware.userExtractor, async (request, response) 
 })
 
 usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
-  const { name, latitude, longitude, address, photo } = request.body
+  const { name, latitude, longitude, photo } = request.body
 
   const user = await User.findById(request.params.id).exec()
 
@@ -128,7 +127,6 @@ usersRouter.put('/:id', middleware.userExtractor ,async (request, response) => {
     name: name,
     latitude: latitude,
     longitude: longitude,
-    address: address,
     photo: cloudinaryResponse?.public_id ?? ''
   }
 

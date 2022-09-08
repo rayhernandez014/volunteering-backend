@@ -7,7 +7,9 @@ eventsRouter.get('/', async (request, response) => {
 
   const currentDate = Date()
 
-  const events = await Event.find({ endDate: { $gte: currentDate } }).populate('author', {
+  const { nelat, nelng, swlat, swlng } = request.query
+
+  const events = await Event.find({ endDate: { $gte: currentDate }, latitude: { $lt: nelat, $gt: swlat }, longitude: { $lt: nelng, $gt: swlng } }).populate('author', {
     email: 1,
     name: 1
   })
